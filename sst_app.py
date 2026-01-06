@@ -591,10 +591,15 @@ def render_admin_page():
         try:
             spreadsheet = client.open(GOOGLE_SHEETS_NAME)
             worksheet = spreadsheet.sheet1
-            data = worksheet.get_all_records()
 
-            if data:
-                df = pd.DataFrame(data)
+            # 모든 값을 가져와서 수동으로 DataFrame 생성
+            all_values = worksheet.get_all_values()
+
+            if len(all_values) > 1:  # 헤더 + 최소 1개 데이터
+                headers = all_values[0]
+                data_rows = all_values[1:]
+                df = pd.DataFrame(data_rows, columns=headers)
+
                 st.markdown(f"**총 {len(df)}개의 응답이 수집되었습니다.**")
                 st.dataframe(df, use_container_width=True)
 
@@ -607,6 +612,8 @@ def render_admin_page():
                     mime='text/csv',
                     use_container_width=True
                 )
+            elif len(all_values) == 1:
+                st.info("헤더만 있고 아직 수집된 데이터가 없습니다.")
             else:
                 st.info("아직 수집된 데이터가 없습니다.")
 
