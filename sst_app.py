@@ -148,7 +148,7 @@ def get_google_sheets_client():
         st.error(f"Google Sheets 연결 실패: {e}")
         return None
 
-def save_to_google_sheets(participant_info: dict, responses: dict, timing: dict):
+def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_responses: dict, timing: dict):
     """응답 데이터를 Google Sheets에 저장"""
     client = get_google_sheets_client()
 
@@ -172,7 +172,10 @@ def save_to_google_sheets(participant_info: dict, responses: dict, timing: dict)
             # 헤더 생성
             headers = [
                 'timestamp', 'participant_id', 'age', 'gender', 'education',
-                'story_read_time_sec', 'total_time_sec'
+                'story_read_time_sec', 'total_time_sec',
+                'read_before', 'read_when', 'read_memory', 'read_context',
+                'read_grade', 'read_class', 'familiar', 'familiar_knowledge',
+                'familiar_discussion'
             ]
             for q in QUESTIONS:
                 headers.append(f"response_{q['id']}")
@@ -188,6 +191,15 @@ def save_to_google_sheets(participant_info: dict, responses: dict, timing: dict)
             participant_info.get('education', ''),
             str(round(timing.get('story_read_time', 0), 1)),
             str(round(timing.get('total_time', 0), 1)),
+            pre_story_responses.get('read_before', ''),
+            pre_story_responses.get('read_when', ''),
+            pre_story_responses.get('read_memory', ''),
+            pre_story_responses.get('read_context', ''),
+            pre_story_responses.get('read_grade', ''),
+            pre_story_responses.get('read_class', ''),
+            pre_story_responses.get('familiar', ''),
+            pre_story_responses.get('familiar_knowledge', ''),
+            pre_story_responses.get('familiar_discussion', ''),
         ]
 
         for q in QUESTIONS:
@@ -213,6 +225,8 @@ def init_session_state():
         st.session_state.participant_info = {}
     if 'responses' not in st.session_state:
         st.session_state.responses = {}
+    if 'pre_story_responses' not in st.session_state:
+        st.session_state.pre_story_responses = {}
     if 'start_time' not in st.session_state:
         st.session_state.start_time = None
     if 'story_read_time' not in st.session_state:
@@ -294,12 +308,13 @@ def render_instruction_page():
     st.markdown(f"""
     ---
 
-    지금부터 **"{STORY_TITLE}"**이라는 짧은 이야기를 읽게 됩니다.
+    이제 **"{STORY_TITLE}"**이라는 단편소설을 읽게 됩니다.
 
-    이야기는 몇 페이지밖에 되지 않지만, 천천히 읽어주세요.
-    무슨 일이 일어나는지, 등장인물들의 관계가 어떤지 파악하려고 노력해 주세요.
+    이 이야기는 몇 페이지밖에 되지 않지만, **천천히 읽어주세요.**
 
-    이야기를 다 읽으신 후에 몇 가지 질문을 드릴 것입니다.
+    무슨 일이 일어나는지, 등장인물들 간의 관계가 어떤지 파악하려고 노력해 주세요.
+
+    다 읽으신 후에 몇 가지 질문을 드리고 응답을 녹음할 것입니다.
 
     ---
 
@@ -309,6 +324,8 @@ def render_instruction_page():
 
     ---
     """)
+
+    st.info("💡 시작하기 전에 질문이 있으시면 연구자에게 문의해 주세요.")
 
     if st.button("이야기 읽기 시작", type="primary", use_container_width=True):
         st.session_state.story_start_time = datetime.now()
@@ -349,8 +366,100 @@ def render_story_page():
         if hasattr(st.session_state, 'story_start_time'):
             read_duration = (datetime.now() - st.session_state.story_start_time).total_seconds()
             st.session_state.story_read_time = read_duration
-        st.session_state.page = 'questions'
+        st.session_state.page = 'pre_questions'
         st.rerun()
+
+def render_pre_questions_page():
+    """이야기 읽은 후 사전 질문 페이지"""
+    st.title("사전 확인 질문")
+
+    st.markdown("""
+    ---
+    이야기에 대한 몇 가지 간단한 질문을 드리겠습니다.
+    """)
+
+    with st.form("pre_questions_form"):
+        # 1. 이전에 읽은 적 있는지
+        st.subheader("1. 이야기 경험")
+        read_before = st.radio(
+            "이 이야기를 전에 읽어본 적 있으신가요?",
+            ["아니오", "예"],
+            key="read_before"
+        )
+
+        # 읽어본 적 있는 경우 추가 질문
+        read_when = ""
+        read_memory = ""
+        read_context = ""
+        read_grade = ""
+        read_class = ""
+
+        if read_before == "예":
+            st.markdown("---")
+            read_when = st.text_input(
+                "얼마나 오래 전에 읽으셨나요?",
+                placeholder="예: 5년 전, 고등학교 때 등"
+            )
+            read_memory = st.text_input(
+                "이야기를 얼마나 잘 기억하시나요?",
+                placeholder="예: 대략적인 줄거리만, 세부 내용까지 등"
+            )
+            read_context = st.radio(
+                "학교에서 읽으셨나요, 아니면 취미로 읽으셨나요?",
+                ["취미", "학교", "기타"],
+                key="read_context"
+            )
+
+            if read_context == "학교":
+                read_grade = st.text_input("몇 학년 때였나요?", placeholder="예: 고등학교 2학년")
+                read_class = st.text_input("어떤 수업이었나요?", placeholder="예: 문학, 국어 등")
+
+        st.markdown("---")
+
+        # 2. 이야기가 익숙한지
+        st.subheader("2. 이야기 친숙도")
+        familiar = st.radio(
+            "이 이야기가 익숙하신가요?",
+            ["아니오", "예"],
+            key="familiar"
+        )
+
+        # 익숙한 경우 추가 질문
+        familiar_knowledge = ""
+        familiar_discussion = ""
+
+        if familiar == "예":
+            st.markdown("---")
+            familiar_knowledge = st.text_area(
+                "이 이야기에 대해 아시는 것이 있으신가요? 무엇을 아시나요?",
+                placeholder="알고 계신 내용을 자유롭게 작성해 주세요...",
+                height=100
+            )
+            familiar_discussion = st.text_area(
+                "누군가와 이 이야기에 대해 이야기한 적 있으신가요? 어떤 내용이었나요?",
+                placeholder="대화 내용을 자유롭게 작성해 주세요...",
+                height=100
+            )
+
+        st.markdown("---")
+
+        submitted = st.form_submit_button("다음", type="primary", use_container_width=True)
+
+        if submitted:
+            # 응답 저장
+            st.session_state.pre_story_responses = {
+                'read_before': read_before,
+                'read_when': read_when,
+                'read_memory': read_memory,
+                'read_context': read_context,
+                'read_grade': read_grade,
+                'read_class': read_class,
+                'familiar': familiar,
+                'familiar_knowledge': familiar_knowledge,
+                'familiar_discussion': familiar_discussion
+            }
+            st.session_state.page = 'questions'
+            st.rerun()
 
 def render_questions_page():
     """질문 응답 페이지"""
@@ -432,6 +541,7 @@ def render_complete_page():
             success, message = save_to_google_sheets(
                 st.session_state.participant_info,
                 st.session_state.responses,
+                st.session_state.pre_story_responses,
                 timing
             )
 
@@ -525,8 +635,8 @@ def main():
     # 사이드바에 진행 상황 표시
     with st.sidebar:
         st.markdown("### 진행 상황")
-        pages = ['intro', 'participant_info', 'instruction', 'story', 'questions', 'complete']
-        page_names = ['시작', '참가자 정보', '안내', '이야기 읽기', '질문 응답', '완료']
+        pages = ['intro', 'participant_info', 'instruction', 'story', 'pre_questions', 'questions', 'complete']
+        page_names = ['시작', '참가자 정보', '안내', '이야기 읽기', '사전 질문', '질문 응답', '완료']
 
         current_idx = pages.index(st.session_state.page) if st.session_state.page in pages else 0
 
@@ -561,6 +671,8 @@ def main():
         render_instruction_page()
     elif st.session_state.page == 'story':
         render_story_page()
+    elif st.session_state.page == 'pre_questions':
+        render_pre_questions_page()
     elif st.session_state.page == 'questions':
         render_questions_page()
     elif st.session_state.page == 'complete':
