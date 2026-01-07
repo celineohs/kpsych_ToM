@@ -611,22 +611,57 @@ def render_pre_questions_page():
     st.markdown("---")
 
     if st.button("다음", type="primary", use_container_width=True):
-        # 응답 저장
-        st.session_state.pre_story_responses = {
-            'read_before': read_before,
-            'read_when': read_when if read_before == "예" else "",
-            'read_memory': read_memory if read_before == "예" else "",
-            'read_context': read_context if read_before == "예" else "",
-            'read_grade': read_grade if read_before == "예" and read_context == "학교" else "",
-            'read_class': read_class if read_before == "예" and read_context == "학교" else "",
-            'familiar': familiar,
-            'familiar_knowledge': familiar_knowledge if familiar == "예" else "",
-            'familiar_discussion': familiar_discussion if familiar == "예" else ""
-        }
-        # 임시 응답 초기화
-        del st.session_state.temp_pre_responses
-        st.session_state.page = 'questions'
-        st.rerun()
+        # 유효성 검사
+        errors = []
+
+        # 기본 질문 선택 확인
+        if read_before == "선택하세요":
+            errors.append("'이 이야기를 전에 읽어본 적 있으신가요?'에 응답해주세요.")
+
+        if familiar == "선택하세요":
+            errors.append("'이 이야기가 익숙하신가요?'에 응답해주세요.")
+
+        # "예" 선택 시 꼬리 질문 필수 응답 확인
+        if read_before == "예":
+            if not read_when.strip():
+                errors.append("얼마나 오래 전에 읽으셨는지 입력해주세요.")
+            if not read_memory.strip():
+                errors.append("이야기를 얼마나 잘 기억하시는지 입력해주세요.")
+            if read_context == "선택하세요":
+                errors.append("학교에서 읽으셨는지, 취미로 읽으셨는지 선택해주세요.")
+            if read_context == "학교":
+                if not read_grade.strip():
+                    errors.append("몇 학년 때 읽으셨는지 입력해주세요.")
+                if not read_class.strip():
+                    errors.append("어떤 수업이었는지 입력해주세요.")
+
+        if familiar == "예":
+            if not familiar_knowledge.strip():
+                errors.append("이 이야기에 대해 아시는 것을 입력해주세요.")
+            if not familiar_discussion.strip():
+                errors.append("누군가와 이 이야기에 대해 이야기한 적이 있는지 입력해주세요.")
+
+        # 에러가 있으면 표시하고 중단
+        if errors:
+            for error in errors:
+                st.error(error)
+        else:
+            # 응답 저장
+            st.session_state.pre_story_responses = {
+                'read_before': read_before,
+                'read_when': read_when if read_before == "예" else "",
+                'read_memory': read_memory if read_before == "예" else "",
+                'read_context': read_context if read_before == "예" else "",
+                'read_grade': read_grade if read_before == "예" and read_context == "학교" else "",
+                'read_class': read_class if read_before == "예" and read_context == "학교" else "",
+                'familiar': familiar,
+                'familiar_knowledge': familiar_knowledge if familiar == "예" else "",
+                'familiar_discussion': familiar_discussion if familiar == "예" else ""
+            }
+            # 임시 응답 초기화
+            del st.session_state.temp_pre_responses
+            st.session_state.page = 'questions'
+            st.rerun()
 
 def render_questions_page():
     """질문 응답 페이지"""
