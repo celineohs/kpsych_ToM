@@ -682,63 +682,6 @@ def render_complete_page():
             del st.session_state[key]
         st.rerun()
 
-def render_admin_page():
-    """관리자 페이지 - 수집된 데이터 확인"""
-    st.title("📊 수집된 데이터")
-
-    if not check_google_sheets_config():
-        st.error("Google Sheets가 설정되지 않았습니다.")
-        st.markdown("""
-        ### 설정 방법
-        1. Google Cloud Console에서 서비스 계정 생성
-        2. Google Sheets API 활성화
-        3. Streamlit secrets에 credentials 추가
-        """)
-        return
-
-    client = get_google_sheets_client()
-
-    if client:
-        try:
-            spreadsheet = client.open(GOOGLE_SHEETS_NAME)
-            worksheet = spreadsheet.sheet1
-
-            # 모든 값을 가져와서 수동으로 DataFrame 생성
-            all_values = worksheet.get_all_values()
-
-            if len(all_values) > 1:  # 헤더 + 최소 1개 데이터
-                headers = all_values[0]
-                data_rows = all_values[1:]
-                df = pd.DataFrame(data_rows, columns=headers)
-
-                st.markdown(f"**총 {len(df)}개의 응답이 수집되었습니다.**")
-                st.dataframe(df, use_container_width=True)
-
-                # CSV 다운로드 버튼
-                csv = df.to_csv(index=False, encoding='utf-8-sig')
-                st.download_button(
-                    label="CSV 파일 다운로드",
-                    data=csv,
-                    file_name=f"sst_responses_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                    mime='text/csv',
-                    use_container_width=True
-                )
-            elif len(all_values) == 1:
-                st.info("헤더만 있고 아직 수집된 데이터가 없습니다.")
-            else:
-                st.info("아직 수집된 데이터가 없습니다.")
-
-        except gspread.SpreadsheetNotFound:
-            st.error(f"스프레드시트 '{GOOGLE_SHEETS_NAME}'를 찾을 수 없습니다.")
-        except Exception as e:
-            st.error(f"데이터 로드 실패: {e}")
-
-    st.markdown("---")
-
-    if st.button("돌아가기", use_container_width=True):
-        st.session_state.page = 'intro'
-        st.rerun()
-
 def main():
     """메인 함수"""
     st.set_page_config(
@@ -774,12 +717,6 @@ def main():
         else:
             st.warning("🟡 로컬 테스트 모드")
 
-        st.markdown("---")
-        st.markdown("**관리자 메뉴**")
-        if st.button("데이터 확인", use_container_width=True):
-            st.session_state.page = 'admin'
-            st.rerun()
-
     # 페이지 라우팅
     if st.session_state.page == 'intro':
         render_intro_page()
@@ -795,8 +732,6 @@ def main():
         render_questions_page()
     elif st.session_state.page == 'complete':
         render_complete_page()
-    elif st.session_state.page == 'admin':
-        render_admin_page()
 
 if __name__ == "__main__":
     main()
