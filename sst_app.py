@@ -498,88 +498,135 @@ def render_pre_questions_page():
     이야기에 대한 몇 가지 간단한 질문을 드리겠습니다.
     """)
 
-    with st.form("pre_questions_form"):
-        # 1. 이전에 읽은 적 있는지
-        st.subheader("1. 이야기 경험")
-        read_before = st.radio(
-            "이 이야기를 전에 읽어본 적 있으신가요?",
-            ["예", "아니오"],
-            key="read_before"
-        )
+    # 세션 상태에 임시 응답 저장
+    if 'temp_pre_responses' not in st.session_state:
+        st.session_state.temp_pre_responses = {
+            'read_before': '아니오',
+            'read_when': '',
+            'read_memory': '',
+            'read_context': '취미',
+            'read_grade': '',
+            'read_class': '',
+            'familiar': '아니오',
+            'familiar_knowledge': '',
+            'familiar_discussion': ''
+        }
 
-        # 읽어본 적 있는 경우 추가 질문
-        read_when = ""
-        read_memory = ""
-        read_context = ""
-        read_grade = ""
-        read_class = ""
+    # 1. 이전에 읽은 적 있는지
+    st.subheader("1. 이야기 경험")
+    read_before = st.radio(
+        "이 이야기를 전에 읽어본 적 있으신가요?",
+        ["예", "아니오"],
+        key="read_before_radio",
+        index=0 if st.session_state.temp_pre_responses['read_before'] == "예" else 1
+    )
+    st.session_state.temp_pre_responses['read_before'] = read_before
 
-        if read_before == "예":
-            st.markdown("---")
-            read_when = st.text_input(
-                "얼마나 오래 전에 읽으셨나요?",
-                placeholder="예: 5년 전, 고등학교 때 등"
-            )
-            read_memory = st.text_input(
-                "이야기를 얼마나 잘 기억하시나요?",
-                placeholder="예: 대략적인 줄거리만, 세부 내용까지 등"
-            )
-            read_context = st.radio(
-                "학교에서 읽으셨나요, 아니면 취미로 읽으셨나요?",
-                ["취미", "학교", "기타"],
-                key="read_context"
-            )
+    # 읽어본 적 있는 경우 추가 질문
+    read_when = ""
+    read_memory = ""
+    read_context = ""
+    read_grade = ""
+    read_class = ""
 
-            if read_context == "학교":
-                read_grade = st.text_input("몇 학년 때였나요?", placeholder="예: 고등학교 2학년")
-                read_class = st.text_input("어떤 수업이었나요?", placeholder="예: 문학, 국어 등")
-
+    if read_before == "예":
         st.markdown("---")
-
-        # 2. 이야기가 익숙한지
-        st.subheader("2. 이야기 친숙도")
-        familiar = st.radio(
-            "이 이야기가 익숙하신가요?",
-            ["예", "아니오"],
-            key="familiar"
+        read_when = st.text_input(
+            "얼마나 오래 전에 읽으셨나요?",
+            placeholder="예: 5년 전, 고등학교 때 등",
+            value=st.session_state.temp_pre_responses.get('read_when', ''),
+            key="read_when_input"
         )
+        st.session_state.temp_pre_responses['read_when'] = read_when
 
-        # 익숙한 경우 추가 질문
-        familiar_knowledge = ""
-        familiar_discussion = ""
+        read_memory = st.text_input(
+            "이야기를 얼마나 잘 기억하시나요?",
+            placeholder="예: 대략적인 줄거리만, 세부 내용까지 등",
+            value=st.session_state.temp_pre_responses.get('read_memory', ''),
+            key="read_memory_input"
+        )
+        st.session_state.temp_pre_responses['read_memory'] = read_memory
 
-        if familiar == "예":
-            st.markdown("---")
-            familiar_knowledge = st.text_area(
-                "이 이야기에 대해 아시는 것이 있으신가요? 무엇을 아시나요?",
-                placeholder="알고 계신 내용을 자유롭게 작성해 주세요...",
-                height=100
+        read_context = st.radio(
+            "학교에서 읽으셨나요, 아니면 취미로 읽으셨나요?",
+            ["취미", "학교", "기타"],
+            key="read_context_radio",
+            index=["취미", "학교", "기타"].index(st.session_state.temp_pre_responses.get('read_context', '취미'))
+        )
+        st.session_state.temp_pre_responses['read_context'] = read_context
+
+        if read_context == "학교":
+            read_grade = st.text_input(
+                "몇 학년 때였나요?",
+                placeholder="예: 고등학교 2학년",
+                value=st.session_state.temp_pre_responses.get('read_grade', ''),
+                key="read_grade_input"
             )
-            familiar_discussion = st.text_area(
-                "누군가와 이 이야기에 대해 이야기한 적 있으신가요? 어떤 내용이었나요?",
-                placeholder="대화 내용을 자유롭게 작성해 주세요...",
-                height=100
-            )
+            st.session_state.temp_pre_responses['read_grade'] = read_grade
 
+            read_class = st.text_input(
+                "어떤 수업이었나요?",
+                placeholder="예: 문학, 국어 등",
+                value=st.session_state.temp_pre_responses.get('read_class', ''),
+                key="read_class_input"
+            )
+            st.session_state.temp_pre_responses['read_class'] = read_class
+
+    st.markdown("---")
+
+    # 2. 이야기가 익숙한지
+    st.subheader("2. 이야기 친숙도")
+    familiar = st.radio(
+        "이 이야기가 익숙하신가요?",
+        ["예", "아니오"],
+        key="familiar_radio",
+        index=0 if st.session_state.temp_pre_responses['familiar'] == "예" else 1
+    )
+    st.session_state.temp_pre_responses['familiar'] = familiar
+
+    # 익숙한 경우 추가 질문
+    familiar_knowledge = ""
+    familiar_discussion = ""
+
+    if familiar == "예":
         st.markdown("---")
+        familiar_knowledge = st.text_area(
+            "이 이야기에 대해 아시는 것이 있으신가요? 무엇을 아시나요?",
+            placeholder="알고 계신 내용을 자유롭게 작성해 주세요...",
+            height=100,
+            value=st.session_state.temp_pre_responses.get('familiar_knowledge', ''),
+            key="familiar_knowledge_input"
+        )
+        st.session_state.temp_pre_responses['familiar_knowledge'] = familiar_knowledge
 
-        submitted = st.form_submit_button("다음", type="primary", use_container_width=True)
+        familiar_discussion = st.text_area(
+            "누군가와 이 이야기에 대해 이야기한 적 있으신가요? 어떤 내용이었나요?",
+            placeholder="대화 내용을 자유롭게 작성해 주세요...",
+            height=100,
+            value=st.session_state.temp_pre_responses.get('familiar_discussion', ''),
+            key="familiar_discussion_input"
+        )
+        st.session_state.temp_pre_responses['familiar_discussion'] = familiar_discussion
 
-        if submitted:
-            # 응답 저장
-            st.session_state.pre_story_responses = {
-                'read_before': read_before,
-                'read_when': read_when,
-                'read_memory': read_memory,
-                'read_context': read_context,
-                'read_grade': read_grade,
-                'read_class': read_class,
-                'familiar': familiar,
-                'familiar_knowledge': familiar_knowledge,
-                'familiar_discussion': familiar_discussion
-            }
-            st.session_state.page = 'questions'
-            st.rerun()
+    st.markdown("---")
+
+    if st.button("다음", type="primary", use_container_width=True):
+        # 응답 저장
+        st.session_state.pre_story_responses = {
+            'read_before': read_before,
+            'read_when': read_when if read_before == "예" else "",
+            'read_memory': read_memory if read_before == "예" else "",
+            'read_context': read_context if read_before == "예" else "",
+            'read_grade': read_grade if read_before == "예" and read_context == "학교" else "",
+            'read_class': read_class if read_before == "예" and read_context == "학교" else "",
+            'familiar': familiar,
+            'familiar_knowledge': familiar_knowledge if familiar == "예" else "",
+            'familiar_discussion': familiar_discussion if familiar == "예" else ""
+        }
+        # 임시 응답 초기화
+        del st.session_state.temp_pre_responses
+        st.session_state.page = 'questions'
+        st.rerun()
 
 def render_questions_page():
     """질문 응답 페이지"""
