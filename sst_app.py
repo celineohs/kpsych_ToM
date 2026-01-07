@@ -403,11 +403,11 @@ def render_participant_info_page():
 
     with st.form("participant_form"):
         participant_id = st.text_input("참가자 ID", placeholder="예: P001")
-        age = st.number_input("나이", min_value=18, max_value=100, value=25)
-        gender = st.selectbox("성별", ["선택하세요", "남성", "여성", "기타", "응답하지 않음"])
+        age = st.number_input("나이", min_value=18, max_value=100)
+        gender = st.selectbox("성별", ["선택하세요", "남성", "여성"])
         education = st.selectbox(
             "최종 학력",
-            ["선택하세요", "고등학교 졸업", "대학교 재학", "대학교 졸업", "대학원 재학", "대학원 졸업"]
+            ["선택하세요", "중학교 졸업 이하", "고등학교 졸업", "전문대학교 졸업", "4년제 대학교 졸업", "대학원 재학/수료/졸업"]
         )
 
         submitted = st.form_submit_button("다음", type="primary", use_container_width=True)
@@ -511,7 +511,7 @@ def render_pre_questions_page():
         st.subheader("1. 이야기 경험")
         read_before = st.radio(
             "이 이야기를 전에 읽어본 적 있으신가요?",
-            ["아니오", "예"],
+            ["예", "아니오"],
             key="read_before"
         )
 
@@ -548,7 +548,7 @@ def render_pre_questions_page():
         st.subheader("2. 이야기 친숙도")
         familiar = st.radio(
             "이 이야기가 익숙하신가요?",
-            ["아니오", "예"],
+            ["예", "아니오"],
             key="familiar"
         )
 
@@ -606,23 +606,10 @@ def render_questions_page():
 
     st.markdown("---")
 
-    # 질문 유형별 라벨
-    type_labels = {
-        "spontaneous": "이야기 요약",
-        "mental_state": "등장인물의 마음 상태",
-        "comprehension": "이야기 이해"
-    }
-
     with st.form("questions_form"):
         responses = {}
 
-        current_type = None
         for i, q in enumerate(QUESTIONS):
-            # 질문 유형이 바뀌면 구분선 표시
-            if q['type'] != current_type:
-                current_type = q['type']
-                st.subheader(type_labels.get(current_type, current_type))
-
             # 질문 표시 및 응답 입력
             st.markdown(f"**{i+1}. {q['text']}**")
             responses[q['id']] = st.text_area(
