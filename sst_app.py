@@ -501,24 +501,24 @@ def render_pre_questions_page():
     # 세션 상태에 임시 응답 저장
     if 'temp_pre_responses' not in st.session_state:
         st.session_state.temp_pre_responses = {
-            'read_before': '아니오',
+            'read_before': '선택하세요',
             'read_when': '',
             'read_memory': '',
-            'read_context': '취미',
+            'read_context': '선택하세요',
             'read_grade': '',
             'read_class': '',
-            'familiar': '아니오',
+            'familiar': '선택하세요',
             'familiar_knowledge': '',
             'familiar_discussion': ''
         }
 
     # 1. 이전에 읽은 적 있는지
-    st.subheader("1. 이야기 경험")
-    read_before = st.radio(
+    st.markdown("#### 1. 이야기 독서 경험")
+    read_before = st.selectbox(
         "이 이야기를 전에 읽어본 적 있으신가요?",
-        ["예", "아니오"],
-        key="read_before_radio",
-        index=0 if st.session_state.temp_pre_responses['read_before'] == "예" else 1
+        ["선택하세요", "예", "아니오"],
+        key="read_before_select",
+        index=["선택하세요", "예", "아니오"].index(st.session_state.temp_pre_responses['read_before'])
     )
     st.session_state.temp_pre_responses['read_before'] = read_before
 
@@ -547,11 +547,11 @@ def render_pre_questions_page():
         )
         st.session_state.temp_pre_responses['read_memory'] = read_memory
 
-        read_context = st.radio(
+        read_context = st.selectbox(
             "학교에서 읽으셨나요, 아니면 취미로 읽으셨나요?",
-            ["취미", "학교", "기타"],
-            key="read_context_radio",
-            index=["취미", "학교", "기타"].index(st.session_state.temp_pre_responses.get('read_context', '취미'))
+            ["선택하세요", "취미", "학교", "기타"],
+            key="read_context_select",
+            index=["선택하세요", "취미", "학교", "기타"].index(st.session_state.temp_pre_responses.get('read_context', '선택하세요'))
         )
         st.session_state.temp_pre_responses['read_context'] = read_context
 
@@ -575,12 +575,12 @@ def render_pre_questions_page():
     st.markdown("---")
 
     # 2. 이야기가 익숙한지
-    st.subheader("2. 이야기 친숙도")
-    familiar = st.radio(
+    st.markdown("#### 2. 이야기 친숙도")
+    familiar = st.selectbox(
         "이 이야기가 익숙하신가요?",
-        ["예", "아니오"],
-        key="familiar_radio",
-        index=0 if st.session_state.temp_pre_responses['familiar'] == "예" else 1
+        ["선택하세요", "예", "아니오"],
+        key="familiar_select",
+        index=["선택하세요", "예", "아니오"].index(st.session_state.temp_pre_responses['familiar'])
     )
     st.session_state.temp_pre_responses['familiar'] = familiar
 
