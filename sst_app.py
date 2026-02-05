@@ -640,6 +640,26 @@ def render_questions_page():
 
     st.markdown("---")
 
+    # 스크롤 가능한 질문 영역을 위한 CSS
+    st.markdown("""
+        <style>
+        .questions-container {
+            background-color: #fafafa;
+            padding: 28px 32px;
+            border-radius: 12px;
+            height: calc(100vh - 280px);
+            min-height: 500px;
+            max-height: 800px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .questions-container .stTextArea textarea {
+            background-color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     # 2컬럼 레이아웃: 왼쪽에 본문, 오른쪽에 질문
     left_col, right_col = st.columns([1, 1])
 
@@ -669,40 +689,42 @@ def render_questions_page():
     with right_col:
         st.markdown("### ✏️ 질문")
 
-        # 스크롤 가능한 질문 영역
-        with st.form("questions_form"):
-            responses = {}
+        # 스크롤 가능한 질문 영역 (container 사용)
+        questions_container = st.container(height=600)
+        with questions_container:
+            with st.form("questions_form"):
+                responses = {}
 
-            for i, q in enumerate(QUESTIONS):
-                st.markdown(f"**{i+1}. {q['text']}**")
-                responses[q['id']] = st.text_area(
-                    label=f"응답 {q['id']}",
-                    key=f"response_{q['id']}",
-                    height=80,
-                    label_visibility="collapsed",
-                    placeholder="여기에 응답을 입력하세요..."
-                )
-                if i < len(QUESTIONS) - 1:
-                    st.markdown("---")
+                for i, q in enumerate(QUESTIONS):
+                    st.markdown(f"**{i+1}. {q['text']}**")
+                    responses[q['id']] = st.text_area(
+                        label=f"응답 {q['id']}",
+                        key=f"response_{q['id']}",
+                        height=80,
+                        label_visibility="collapsed",
+                        placeholder="여기에 응답을 입력하세요..."
+                    )
+                    if i < len(QUESTIONS) - 1:
+                        st.markdown("---")
 
-            st.markdown("")  # 여백
-            submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
+                st.markdown("")  # 여백
+                submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
 
-            if submitted:
-                # 빈 응답 확인
-                empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
+                if submitted:
+                    # 빈 응답 확인
+                    empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
 
-                if empty_responses:
-                    st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
-                    st.info("모든 질문에 응답해 주세요.")
-                else:
-                    # 질문 풀이 시간 계산
-                    if st.session_state.questions_start_time:
-                        questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
-                        st.session_state.questions_time = questions_duration
-                    st.session_state.responses = responses
-                    st.session_state.page = 'complete'
-                    st.rerun()
+                    if empty_responses:
+                        st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
+                        st.info("모든 질문에 응답해 주세요.")
+                    else:
+                        # 질문 풀이 시간 계산
+                        if st.session_state.questions_start_time:
+                            questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
+                            st.session_state.questions_time = questions_duration
+                        st.session_state.responses = responses
+                        st.session_state.page = 'complete'
+                        st.rerun()
 
 def render_complete_page():
     """완료 페이지"""
