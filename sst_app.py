@@ -299,7 +299,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
         if len(existing_data) == 0:
             # 헤더 생성
             headers = [
-                'timestamp', 'participant_id', 'age', 'gender', 'education',
+                'timestamp', 'participant_name',
                 'story_read_time_sec', 'questions_time_sec', 'total_time_sec',
                 'read_before', 'read_when', 'read_memory', 'read_context',
                 'read_grade', 'read_class', 'familiar', 'familiar_knowledge',
@@ -313,10 +313,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
         # 데이터 행 구성
         row = [
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            participant_info.get('id', ''),
-            str(participant_info.get('age', '')),
-            participant_info.get('gender', ''),
-            participant_info.get('education', ''),
+            participant_info.get('name', ''),
             str(round(timing.get('story_read_time', 0), 1)),
             str(round(timing.get('questions_time', 0), 1)),
             str(round(timing.get('total_time', 0), 1)),
@@ -403,31 +400,16 @@ def render_participant_info_page():
     st.title("참가자 정보")
 
     with st.form("participant_form"):
-        participant_id = st.text_input("참가자 ID", placeholder="예: P001")
-        age = st.number_input("나이", min_value=18, max_value=100, value=None, placeholder="나이를 입력하세요")
-        gender = st.selectbox("성별", ["선택하세요", "남성", "여성"])
-        education = st.selectbox(
-            "최종 학력",
-            ["선택하세요", "중학교 졸업 이하", "고등학교 졸업", "전문대학교 졸업", "4년제 대학교 졸업", "대학원 재학/수료/졸업"]
-        )
+        participant_name = st.text_input("참가자 이름", placeholder="예: 홍길동")
 
         submitted = st.form_submit_button("다음", type="primary", use_container_width=True)
 
         if submitted:
-            if not participant_id:
-                st.error("참가자 ID를 입력해주세요.")
-            elif age is None:
-                st.error("나이를 입력해주세요.")
-            elif gender == "선택하세요":
-                st.error("성별을 선택해주세요.")
-            elif education == "선택하세요":
-                st.error("최종 학력을 선택해주세요.")
+            if not participant_name:
+                st.error("참가자 이름을 입력해주세요.")
             else:
                 st.session_state.participant_info = {
-                    'id': participant_id,
-                    'age': age,
-                    'gender': gender,
-                    'education': education
+                    'name': participant_name
                 }
                 st.session_state.page = 'instruction'
                 st.rerun()
@@ -675,14 +657,9 @@ def render_questions_page():
     st.title("질문")
 
     st.markdown("""
-    ---
     아래 질문들에 대해 자유롭게 응답해 주세요.
-
     **대부분의 질문에는 정답이 없으며, 짧은 응답으로 답할 수 있습니다.**
-
     **질문에 해당되는 경우, 등장인물의 생각, 감정, 의도에 대해서도 말씀해 주세요.**
-
-    왼쪽에 이야기 본문이 표시되어 있으니 필요하시면 참고하세요.
     """)
 
     st.markdown("---")
@@ -695,14 +672,17 @@ def render_questions_page():
         st.markdown(
             f"""
             <div style="
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 10px;
-                font-size: 0.95em;
-                line-height: 1.7;
-                height: 600px;
+                background-color: #fafafa;
+                padding: 28px 32px;
+                border-radius: 12px;
+                font-size: 1.05em;
+                line-height: 2.0;
+                height: calc(100vh - 280px);
+                min-height: 500px;
+                max-height: 800px;
                 overflow-y: auto;
-                border: 1px solid #ddd;
+                border: 1px solid #e0e0e0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             ">
             {STORY_TEXT.replace(chr(10), '<br>')}
             </div>
