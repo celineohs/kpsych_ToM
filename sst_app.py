@@ -300,7 +300,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
             # 헤더 생성
             headers = [
                 'timestamp', 'participant_id', 'age', 'gender', 'education',
-                'story_read_time_sec', 'total_time_sec',
+                'story_read_time_sec', 'questions_time_sec', 'total_time_sec',
                 'read_before', 'read_when', 'read_memory', 'read_context',
                 'read_grade', 'read_class', 'familiar', 'familiar_knowledge',
                 'familiar_discussion'
@@ -318,6 +318,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
             participant_info.get('gender', ''),
             participant_info.get('education', ''),
             str(round(timing.get('story_read_time', 0), 1)),
+            str(round(timing.get('questions_time', 0), 1)),
             str(round(timing.get('total_time', 0), 1)),
             pre_story_responses.get('read_before', ''),
             pre_story_responses.get('read_when', ''),
@@ -359,6 +360,10 @@ def init_session_state():
         st.session_state.start_time = None
     if 'story_read_time' not in st.session_state:
         st.session_state.story_read_time = None
+    if 'questions_start_time' not in st.session_state:
+        st.session_state.questions_start_time = None
+    if 'questions_time' not in st.session_state:
+        st.session_state.questions_time = None
 
 def check_google_sheets_config():
     """Google Sheets 설정 확인"""
@@ -660,11 +665,13 @@ def render_pre_questions_page():
             }
             # 임시 응답 초기화
             del st.session_state.temp_pre_responses
+            # 질문 시작 시간 기록
+            st.session_state.questions_start_time = datetime.now()
             st.session_state.page = 'questions'
             st.rerun()
 
 def render_questions_page():
-    """질문 응답 페이지"""
+    """질문 응답 페이지 - 왼쪽에 본문, 오른쪽에 질문"""
     st.title("질문")
 
     st.markdown("""
@@ -675,43 +682,74 @@ def render_questions_page():
 
     **질문에 해당되는 경우, 등장인물의 생각, 감정, 의도에 대해서도 말씀해 주세요.**
 
-    필요하시면 이야기 내용을 다시 참고하실 수 있습니다.
+    왼쪽에 이야기 본문이 표시되어 있으니 필요하시면 참고하세요.
     """)
-
-    # 이야기 다시 보기 (접을 수 있는 섹션)
-    with st.expander("📖 이야기 다시 보기"):
-        st.markdown(STORY_TEXT)
 
     st.markdown("---")
 
-    with st.form("questions_form"):
-        responses = {}
+    # 2컬럼 레이아웃: 왼쪽에 본문, 오른쪽에 질문
+    left_col, right_col = st.columns([1, 1])
 
-        for i, q in enumerate(QUESTIONS):
-            # 질문 표시 및 응답 입력
-            st.markdown(f"**{i+1}. {q['text']}**")
-            responses[q['id']] = st.text_area(
-                label=f"응답 {q['id']}",
-                key=f"response_{q['id']}",
-                height=100,
-                label_visibility="collapsed",
-                placeholder="여기에 응답을 입력하세요..."
-            )
-            st.markdown("---")
+    with left_col:
+        st.markdown(f"### 📖 {STORY_TITLE}")
+        st.markdown(
+            f"""
+            <div style="
+                background-color: #f9f9f9;
+                padding: 20px;
+                border-radius: 10px;
+                font-size: 0.95em;
+                line-height: 1.7;
+                height: 600px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+            ">
+            {STORY_TEXT.replace(chr(10), '<br>')}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
+    with right_col:
+        st.markdown("### ✏️ 질문 응답")
 
-        if submitted:
-            # 빈 응답 확인
-            empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
+        # 스크롤 가능한 질문 영역을 위한 컨테이너
+        with st.container():
+            with st.form("questions_form"):
+                responses = {}
 
-            if empty_responses:
-                st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
-                st.info("모든 질문에 응답해 주세요.")
-            else:
-                st.session_state.responses = responses
-                st.session_state.page = 'complete'
-                st.rerun()
+                # 질문들을 스크롤 가능한 div로 감싸기
+                for i, q in enumerate(QUESTIONS):
+                    # 질문 표시 및 응답 입력
+                    st.markdown(f"**{i+1}. {q['text']}**")
+                    responses[q['id']] = st.text_area(
+                        label=f"응답 {q['id']}",
+                        key=f"response_{q['id']}",
+                        height=80,
+                        label_visibility="collapsed",
+                        placeholder="여기에 응답을 입력하세요..."
+                    )
+                    if i < len(QUESTIONS) - 1:
+                        st.markdown("---")
+
+                st.markdown("")  # 여백
+                submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
+
+                if submitted:
+                    # 빈 응답 확인
+                    empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
+
+                    if empty_responses:
+                        st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
+                        st.info("모든 질문에 응답해 주세요.")
+                    else:
+                        # 질문 풀이 시간 계산
+                        if st.session_state.questions_start_time:
+                            questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
+                            st.session_state.questions_time = questions_duration
+                        st.session_state.responses = responses
+                        st.session_state.page = 'complete'
+                        st.rerun()
 
 def render_complete_page():
     """완료 페이지"""
@@ -723,6 +761,7 @@ def render_complete_page():
 
     timing = {
         'story_read_time': st.session_state.get('story_read_time', 0),
+        'questions_time': st.session_state.get('questions_time', 0),
         'total_time': total_time
     }
 
@@ -746,14 +785,12 @@ def render_complete_page():
         st.warning("Google Sheets가 설정되지 않았습니다. 로컬 테스트 모드입니다.")
         st.info("배포 시 Streamlit secrets에 Google 서비스 계정 정보를 설정하세요.")
 
-    st.markdown(f"""
+    st.markdown("""
     ---
 
     ### 참여해 주셔서 감사합니다!
 
-    **소요 시간:**
-    - 이야기 읽기: {timing['story_read_time']:.1f}초
-    - 전체 과제: {timing['total_time']:.1f}초
+    과제가 성공적으로 완료되었습니다.
 
     ---
     """)
@@ -769,7 +806,7 @@ def main():
     st.set_page_config(
         page_title="Short Story Task (SST)",
         page_icon="📖",
-        layout="centered"
+        layout="wide"  # 2컬럼 레이아웃을 위해 wide로 변경
     )
 
     # 세션 상태 초기화
