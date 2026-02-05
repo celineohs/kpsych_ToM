@@ -346,7 +346,8 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
 def init_session_state():
     """세션 상태 초기화"""
     if 'page' not in st.session_state:
-        st.session_state.page = 'intro'
+        st.session_state.page = 'participant_info'
+        st.session_state.start_time = datetime.now()
     if 'participant_info' not in st.session_state:
         st.session_state.participant_info = {}
     if 'responses' not in st.session_state:
@@ -369,31 +370,6 @@ def check_google_sheets_config():
         return True
     except (KeyError, FileNotFoundError):
         return False
-
-def render_intro_page():
-    """소개 페이지"""
-    st.title("Short Story Task (SST)")
-    st.subheader("마음이론 평가 과제")
-
-    st.markdown("""
-    ---
-    ### 안내사항
-
-    이제 귀하께서는 "어떤 일의 끝"이라는 단편 소설을 읽게 됩니다.
-
-    이 소설은 몇 페이지밖에 되지 않지만, 천천히 읽어 주시길 바랍니다.
-
-    무슨 일이 일어나는지, 등장인물들 간의 관계가 어떤지 파악하려고 노력해 주세요.
-
-    다 읽으신 후에, 귀하께서는 이야기와 관련된 설문을 진행하시게 됩니다.
-
-    ---
-    """)
-
-    if st.button("시작하기", type="primary", use_container_width=True):
-        st.session_state.page = 'participant_info'
-        st.session_state.start_time = datetime.now()
-        st.rerun()
 
 def render_participant_info_page():
     """참가자 정보 입력 페이지"""
@@ -653,8 +629,8 @@ def render_pre_questions_page():
             st.rerun()
 
 def render_questions_page():
-    """질문 응답 페이지 - 왼쪽에 본문, 오른쪽에 질문"""
-    st.title("질문")
+    """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문"""
+    st.title("과제")
 
     st.markdown("""
     아래 질문들에 대해 자유롭게 응답해 주세요.
@@ -691,45 +667,42 @@ def render_questions_page():
         )
 
     with right_col:
-        st.markdown("### ✏️ 질문 응답")
+        st.markdown("### ✏️ 질문")
 
-        # 스크롤 가능한 질문 영역을 위한 컨테이너
-        with st.container():
-            with st.form("questions_form"):
-                responses = {}
+        # 스크롤 가능한 질문 영역
+        with st.form("questions_form"):
+            responses = {}
 
-                # 질문들을 스크롤 가능한 div로 감싸기
-                for i, q in enumerate(QUESTIONS):
-                    # 질문 표시 및 응답 입력
-                    st.markdown(f"**{i+1}. {q['text']}**")
-                    responses[q['id']] = st.text_area(
-                        label=f"응답 {q['id']}",
-                        key=f"response_{q['id']}",
-                        height=80,
-                        label_visibility="collapsed",
-                        placeholder="여기에 응답을 입력하세요..."
-                    )
-                    if i < len(QUESTIONS) - 1:
-                        st.markdown("---")
+            for i, q in enumerate(QUESTIONS):
+                st.markdown(f"**{i+1}. {q['text']}**")
+                responses[q['id']] = st.text_area(
+                    label=f"응답 {q['id']}",
+                    key=f"response_{q['id']}",
+                    height=80,
+                    label_visibility="collapsed",
+                    placeholder="여기에 응답을 입력하세요..."
+                )
+                if i < len(QUESTIONS) - 1:
+                    st.markdown("---")
 
-                st.markdown("")  # 여백
-                submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
+            st.markdown("")  # 여백
+            submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
 
-                if submitted:
-                    # 빈 응답 확인
-                    empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
+            if submitted:
+                # 빈 응답 확인
+                empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
 
-                    if empty_responses:
-                        st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
-                        st.info("모든 질문에 응답해 주세요.")
-                    else:
-                        # 질문 풀이 시간 계산
-                        if st.session_state.questions_start_time:
-                            questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
-                            st.session_state.questions_time = questions_duration
-                        st.session_state.responses = responses
-                        st.session_state.page = 'complete'
-                        st.rerun()
+                if empty_responses:
+                    st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
+                    st.info("모든 질문에 응답해 주세요.")
+                else:
+                    # 질문 풀이 시간 계산
+                    if st.session_state.questions_start_time:
+                        questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
+                        st.session_state.questions_time = questions_duration
+                    st.session_state.responses = responses
+                    st.session_state.page = 'complete'
+                    st.rerun()
 
 def render_complete_page():
     """완료 페이지"""
@@ -795,8 +768,8 @@ def main():
     # 사이드바에 진행 상황 표시
     with st.sidebar:
         st.markdown("### 진행 상황")
-        pages = ['intro', 'participant_info', 'instruction', 'story', 'pre_questions', 'questions', 'complete']
-        page_names = ['시작', '참가자 정보', '안내', '이야기 읽기', '사전 질문', '질문 응답', '완료']
+        pages = ['participant_info', 'instruction', 'story', 'pre_questions', 'questions', 'complete']
+        page_names = ['참가자 정보', '안내', '이야기 읽기', '사전 질문', '과제', '완료']
 
         current_idx = pages.index(st.session_state.page) if st.session_state.page in pages else 0
 
@@ -817,9 +790,7 @@ def main():
             st.warning("🟡 로컬 테스트 모드")
 
     # 페이지 라우팅
-    if st.session_state.page == 'intro':
-        render_intro_page()
-    elif st.session_state.page == 'participant_info':
+    if st.session_state.page == 'participant_info':
         render_participant_info_page()
     elif st.session_state.page == 'instruction':
         render_instruction_page()
