@@ -362,6 +362,8 @@ def init_session_state():
         st.session_state.questions_start_time = None
     if 'questions_time' not in st.session_state:
         st.session_state.questions_time = None
+    if 'current_question_idx' not in st.session_state:
+        st.session_state.current_question_idx = 0
 
 def check_google_sheets_config():
     """Google Sheets 설정 확인"""
@@ -397,31 +399,31 @@ def render_instruction_page():
     st.markdown(f"""
     ---
 
-    이제 귀하께서는 **"{STORY_TITLE}"**이라는 단편 소설을 읽게 됩니다.
+    이제 귀하께서는 **{STORY_TITLE}**이라는 단편 소설을 읽게 됩니다.
 
     이 소설은 몇 페이지밖에 되지 않지만, 천천히 읽어 주시길 바랍니다.
 
     무슨 일이 일어나는지, 등장인물들 간의 관계가 어떤지 파악하려고 노력해 주세요.
 
-    다 읽으신 후에, 귀하께서는 이야기와 관련된 설문을 진행하시게 됩니다.
+    다 읽으신 후에, 귀하께서는 소설과 관련된 설문을 진행하시게 됩니다.
 
     ---
     """)
 
     st.info("💡 시작하기 전에 질문이 있으시면 연구자에게 문의해 주세요.")
 
-    if st.button("이야기 읽기 시작", type="primary", use_container_width=True):
+    if st.button("소설 읽기 시작", type="primary", use_container_width=True):
         st.session_state.story_start_time = datetime.now()
         st.session_state.page = 'story'
         st.rerun()
 
 def render_story_page():
-    """이야기 읽기 페이지"""
+    """소설 읽기 페이지"""
     st.title(f"📖 {STORY_TITLE}")
 
     st.markdown("---")
 
-    # 이야기 본문을 스크롤 가능한 컨테이너에 표시
+    # 소설 본문을 스크롤 가능한 컨테이너에 표시
     st.markdown(
         f"""
         <div style="
@@ -442,10 +444,10 @@ def render_story_page():
 
     st.markdown("---")
 
-    st.info("이야기를 다 읽으셨으면 아래 버튼을 눌러주세요.")
+    st.info("소설을 다 읽으셨으면 아래 버튼을 눌러주세요.")
 
     if st.button("다 읽었습니다", type="primary", use_container_width=True):
-        # 이야기 읽기 시간 계산
+        # 소설 읽기 시간 계산
         if hasattr(st.session_state, 'story_start_time'):
             read_duration = (datetime.now() - st.session_state.story_start_time).total_seconds()
             st.session_state.story_read_time = read_duration
@@ -453,12 +455,12 @@ def render_story_page():
         st.rerun()
 
 def render_pre_questions_page():
-    """이야기 읽은 후 사전 질문 페이지"""
+    """소설 읽은 후 사전 질문 페이지"""
     st.title("사전 확인 질문")
 
     st.markdown("""
     ---
-    이야기에 대한 몇 가지 간단한 질문을 드리겠습니다.
+    소설에 대한 몇 가지 간단한 질문을 드리겠습니다.
     """)
 
     # 세션 상태에 임시 응답 저장
@@ -476,9 +478,9 @@ def render_pre_questions_page():
         }
 
     # 1. 이전에 읽은 적 있는지
-    st.markdown("#### 1. 이야기 독서 경험")
+    st.markdown("#### 1. 소설 독서 경험")
     read_before = st.selectbox(
-        "이 이야기를 전에 읽어본 적 있으신가요?",
+        "이 소설을 전에 읽어본 적 있으신가요?",
         ["선택하세요", "예", "아니오"],
         key="read_before_select",
         index=["선택하세요", "예", "아니오"].index(st.session_state.temp_pre_responses['read_before'])
@@ -503,7 +505,7 @@ def render_pre_questions_page():
         st.session_state.temp_pre_responses['read_when'] = read_when
 
         read_memory = st.text_input(
-            "이야기를 얼마나 잘 기억하시나요?",
+            "소설을 얼마나 잘 기억하시나요?",
             placeholder="예: 대략적인 줄거리만, 세부 내용까지 등",
             value=st.session_state.temp_pre_responses.get('read_memory', ''),
             key="read_memory_input"
@@ -537,10 +539,10 @@ def render_pre_questions_page():
 
     st.markdown("---")
 
-    # 2. 이야기가 익숙한지
-    st.markdown("#### 2. 이야기 친숙도")
+    # 2. 소설이 익숙한지
+    st.markdown("#### 2. 소설 친숙도")
     familiar = st.selectbox(
-        "이 이야기가 익숙하신가요?",
+        "이 소설이 익숙하신가요?",
         ["선택하세요", "예", "아니오"],
         key="familiar_select",
         index=["선택하세요", "예", "아니오"].index(st.session_state.temp_pre_responses['familiar'])
@@ -554,7 +556,7 @@ def render_pre_questions_page():
     if familiar == "예":
         st.markdown("---")
         familiar_knowledge = st.text_area(
-            "이 이야기에 대해 아시는 것이 있으신가요? 무엇을 아시나요?",
+            "이 소설에 대해 아시는 것이 있으신가요? 무엇을 아시나요?",
             placeholder="알고 계신 내용을 자유롭게 작성해 주세요...",
             height=100,
             value=st.session_state.temp_pre_responses.get('familiar_knowledge', ''),
@@ -563,7 +565,7 @@ def render_pre_questions_page():
         st.session_state.temp_pre_responses['familiar_knowledge'] = familiar_knowledge
 
         familiar_discussion = st.text_area(
-            "누군가와 이 이야기에 대해 이야기한 적 있으신가요? 어떤 내용이었나요?",
+            "누군가와 이 소설에 대해 이야기한 적 있으신가요? 어떤 내용이었나요?",
             placeholder="대화 내용을 자유롭게 작성해 주세요...",
             height=100,
             value=st.session_state.temp_pre_responses.get('familiar_discussion', ''),
@@ -579,17 +581,17 @@ def render_pre_questions_page():
 
         # 기본 질문 선택 확인
         if read_before == "선택하세요":
-            errors.append("'이 이야기를 전에 읽어본 적 있으신가요?'에 응답해주세요.")
+            errors.append("'이 소설을 전에 읽어본 적 있으신가요?'에 응답해주세요.")
 
         if familiar == "선택하세요":
-            errors.append("'이 이야기가 익숙하신가요?'에 응답해주세요.")
+            errors.append("'이 소설이 익숙하신가요?'에 응답해주세요.")
 
         # "예" 선택 시 꼬리 질문 필수 응답 확인
         if read_before == "예":
             if not read_when.strip():
                 errors.append("얼마나 오래 전에 읽으셨는지 입력해주세요.")
             if not read_memory.strip():
-                errors.append("이야기를 얼마나 잘 기억하시는지 입력해주세요.")
+                errors.append("소설을 얼마나 잘 기억하시는지 입력해주세요.")
             if read_context == "선택하세요":
                 errors.append("학교에서 읽으셨는지, 취미로 읽으셨는지 선택해주세요.")
             if read_context == "학교":
@@ -600,9 +602,9 @@ def render_pre_questions_page():
 
         if familiar == "예":
             if not familiar_knowledge.strip():
-                errors.append("이 이야기에 대해 아시는 것을 입력해주세요.")
+                errors.append("이 소설에 대해 아시는 것을 입력해주세요.")
             if not familiar_discussion.strip():
-                errors.append("누군가와 이 이야기에 대해 이야기한 적이 있는지 입력해주세요.")
+                errors.append("누군가와 이 소설에 대해 이야기한 적이 있는지 입력해주세요.")
 
         # 에러가 있으면 표시하고 중단
         if errors:
@@ -623,42 +625,29 @@ def render_pre_questions_page():
             }
             # 임시 응답 초기화
             del st.session_state.temp_pre_responses
-            # 질문 시작 시간 기록
+            # 질문 시작 시간 기록 및 질문 인덱스 초기화
             st.session_state.questions_start_time = datetime.now()
+            st.session_state.current_question_idx = 0
             st.session_state.page = 'questions'
             st.rerun()
 
 def render_questions_page():
-    """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문"""
+    """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문 (한 번에 하나씩)"""
     st.title("과제")
 
-    st.markdown("""
-    아래 질문들에 대해 자유롭게 응답해 주세요.
-    **대부분의 질문에는 정답이 없으며, 짧은 응답으로 답할 수 있습니다.**
-    **질문에 해당되는 경우, 등장인물의 생각, 감정, 의도에 대해서도 말씀해 주세요.**
-    """)
-
-    st.markdown("---")
-
-    # 스크롤 가능한 질문 영역을 위한 CSS
-    st.markdown("""
-        <style>
-        .questions-container {
-            background-color: #fafafa;
-            padding: 28px 32px;
-            border-radius: 12px;
-            height: calc(100vh - 280px);
-            min-height: 500px;
-            max-height: 800px;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .questions-container .stTextArea textarea {
-            background-color: white;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # 현재 질문 인덱스 확인
+    current_idx = st.session_state.current_question_idx
+    
+    # 첫 질문일 때 안내문 표시
+    if current_idx == 0:
+        st.markdown("""
+        아래 질문들에 대해 자유롭게 응답해 주세요. 질문은 총 13개이며, 각 질문에 답한 후 앞으로 다시 돌아갈 수 없습니다.
+        
+        질문을 처음에 보고 드는 생각을 작성해 주세요. 질문에 해당하는 경우, 등장인물의 생각, 감정, 의도에 대해서도 말씀해 주세요.
+        
+        대부분의 질문에는 정답이 없으며, 짧은 응답으로 답할 수 있습니다. 답변의 길이는 결과에 영향을 미치지 않습니다.
+        """)
+        st.markdown("---")
 
     # 2컬럼 레이아웃: 왼쪽에 본문, 오른쪽에 질문
     left_col, right_col = st.columns([1, 1])
@@ -688,43 +677,47 @@ def render_questions_page():
 
     with right_col:
         st.markdown("### ✏️ 질문")
-
-        # 스크롤 가능한 질문 영역 (container 사용)
-        questions_container = st.container(height=600)
-        with questions_container:
-            with st.form("questions_form"):
-                responses = {}
-
-                for i, q in enumerate(QUESTIONS):
-                    st.markdown(f"**{i+1}. {q['text']}**")
-                    responses[q['id']] = st.text_area(
-                        label=f"응답 {q['id']}",
-                        key=f"response_{q['id']}",
-                        height=80,
-                        label_visibility="collapsed",
-                        placeholder="여기에 응답을 입력하세요..."
-                    )
-                    if i < len(QUESTIONS) - 1:
-                        st.markdown("---")
-
-                st.markdown("")  # 여백
+        
+        # 현재 질문 표시
+        if current_idx < len(QUESTIONS):
+            current_q = QUESTIONS[current_idx]
+            st.markdown(f"**질문 {current_idx + 1}/{len(QUESTIONS)}**")
+            st.markdown(f"**{current_q['text']}**")
+            
+            # 질문별 폼
+            with st.form(f"question_form_{current_q['id']}"):
+                response = st.text_area(
+                    label="응답",
+                    key=f"response_{current_q['id']}",
+                    height=200,
+                    label_visibility="collapsed",
+                    placeholder="여기에 응답을 입력하세요..."
+                )
+                
                 submitted = st.form_submit_button("제출하기", type="primary", use_container_width=True)
-
+                
                 if submitted:
-                    # 빈 응답 확인
-                    empty_responses = [q['id'] for q in QUESTIONS if not responses.get(q['id'], '').strip()]
-
-                    if empty_responses:
-                        st.warning(f"아직 응답하지 않은 질문이 있습니다: {', '.join(empty_responses)}")
-                        st.info("모든 질문에 응답해 주세요.")
+                    if not response.strip():
+                        st.warning("응답을 입력해주세요.")
                     else:
-                        # 질문 풀이 시간 계산
-                        if st.session_state.questions_start_time:
-                            questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
-                            st.session_state.questions_time = questions_duration
-                        st.session_state.responses = responses
-                        st.session_state.page = 'complete'
-                        st.rerun()
+                        # 응답 저장
+                        st.session_state.responses[current_q['id']] = response
+                        
+                        # 다음 질문으로 이동
+                        if current_idx < len(QUESTIONS) - 1:
+                            st.session_state.current_question_idx += 1
+                            st.rerun()
+                        else:
+                            # 모든 질문 완료
+                            if st.session_state.questions_start_time:
+                                questions_duration = (datetime.now() - st.session_state.questions_start_time).total_seconds()
+                                st.session_state.questions_time = questions_duration
+                            st.session_state.page = 'complete'
+                            st.rerun()
+        else:
+            # 모든 질문 완료 (이 경우는 발생하지 않아야 함)
+            st.session_state.page = 'complete'
+            st.rerun()
 
 def render_complete_page():
     """완료 페이지"""
@@ -781,35 +774,24 @@ def main():
     st.set_page_config(
         page_title="Short Story Task (SST)",
         page_icon="📖",
-        layout="wide"  # 2컬럼 레이아웃을 위해 wide로 변경
+        layout="wide",  # 2컬럼 레이아웃을 위해 wide로 변경
+        initial_sidebar_state="collapsed"  # 사이드바 기본 닫힘
     )
+    
+    # 라이트 모드 강제 설정
+    st.markdown("""
+        <style>
+        .stApp {
+            color-scheme: light;
+        }
+        [data-testid="stAppViewContainer"] {
+            color-scheme: light;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     # 세션 상태 초기화
     init_session_state()
-
-    # 사이드바에 진행 상황 표시
-    with st.sidebar:
-        st.markdown("### 진행 상황")
-        pages = ['participant_info', 'instruction', 'story', 'pre_questions', 'questions', 'complete']
-        page_names = ['참가자 정보', '안내', '이야기 읽기', '사전 질문', '과제', '완료']
-
-        current_idx = pages.index(st.session_state.page) if st.session_state.page in pages else 0
-
-        for i, (page, name) in enumerate(zip(pages, page_names)):
-            if i < current_idx:
-                st.markdown(f"✅ {name}")
-            elif i == current_idx:
-                st.markdown(f"👉 **{name}**")
-            else:
-                st.markdown(f"⬜ {name}")
-
-        st.markdown("---")
-
-        # 연결 상태 표시
-        if check_google_sheets_config():
-            st.success("🟢 Google Sheets 연결됨")
-        else:
-            st.warning("🟡 로컬 테스트 모드")
 
     # 페이지 라우팅
     if st.session_state.page == 'participant_info':
