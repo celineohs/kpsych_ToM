@@ -635,14 +635,31 @@ def render_questions_page():
     """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문 (한 번에 하나씩)"""
     st.title("과제")
 
-    # cmd+Enter 메시지 숨기기
+    # cmd+Enter 메시지 완전히 숨기기
     st.markdown("""
         <style>
-        .stForm > div > div > div > small,
+        /* 모든 form 내부의 small 태그 숨기기 */
         .stForm small,
-        form small {
+        form small,
+        .stForm > div > div > div > small,
+        .stForm > div > div > small,
+        .stForm > div > small,
+        [data-testid="stForm"] small,
+        [data-testid="stForm"] > div > small,
+        [data-testid="stForm"] > div > div > small {
             display: none !important;
             visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+        /* tooltip도 숨기기 */
+        [data-testid="stTooltip"],
+        .stTooltip {
+            display: none !important;
         }
         </style>
     """, unsafe_allow_html=True)
