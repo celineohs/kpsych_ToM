@@ -635,7 +635,7 @@ def render_questions_page():
     """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문 (한 번에 하나씩)"""
     st.title("과제")
 
-    # cmd+Enter 메시지 완전히 숨기기
+    # cmd+Enter 메시지 완전히 숨기기 (CSS + JavaScript)
     st.markdown("""
         <style>
         /* 모든 form 내부의 small 태그 숨기기 */
@@ -662,6 +662,53 @@ def render_questions_page():
             display: none !important;
         }
         </style>
+        <script>
+        // cmd+Enter 메시지 동적 제거
+        function removeCmdEnterMessage() {
+            // 모든 small 태그 찾기
+            const smallElements = document.querySelectorAll('small');
+            smallElements.forEach(el => {
+                const text = el.textContent || el.innerText || '';
+                if (text.includes('cmd+Enter') || text.includes('Press') || text.includes('submit form')) {
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                    el.style.opacity = '0';
+                    el.style.height = '0';
+                    el.style.width = '0';
+                    el.remove(); // 완전히 제거
+                }
+            });
+            
+            // form 내부의 모든 small 태그 제거
+            const forms = document.querySelectorAll('form, .stForm');
+            forms.forEach(form => {
+                const smalls = form.querySelectorAll('small');
+                smalls.forEach(small => {
+                    small.remove();
+                });
+            });
+        }
+        
+        // 페이지 로드 시 실행
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', removeCmdEnterMessage);
+        } else {
+            removeCmdEnterMessage();
+        }
+        
+        // MutationObserver로 동적으로 추가되는 요소도 제거
+        const observer = new MutationObserver(function(mutations) {
+            removeCmdEnterMessage();
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // 주기적으로 체크 (Streamlit이 동적으로 업데이트할 수 있음)
+        setInterval(removeCmdEnterMessage, 100);
+        </script>
     """, unsafe_allow_html=True)
 
     # 현재 질문 인덱스 확인
