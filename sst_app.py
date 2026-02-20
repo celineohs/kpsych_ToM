@@ -635,13 +635,25 @@ def render_questions_page():
     """과제 페이지 - 왼쪽에 본문, 오른쪽에 질문 (한 번에 하나씩)"""
     st.title("과제")
 
+    # cmd+Enter 메시지 숨기기
+    st.markdown("""
+        <style>
+        .stForm > div > div > div > small,
+        .stForm small,
+        form small {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     # 현재 질문 인덱스 확인
     current_idx = st.session_state.current_question_idx
     
     # 첫 질문일 때 안내문 표시
     if current_idx == 0:
         st.markdown("""
-        아래 질문들에 대해 자유롭게 응답해 주세요. 질문은 총 13개이며, 각 질문에 답한 후 앞으로 다시 돌아갈 수 없습니다.
+        아래 질문들에 대해 자유롭게 응답해 주세요. 질문은 총 14개이며, 각 질문에 답한 후 앞으로 다시 돌아갈 수 없습니다.
         
         질문을 처음에 보고 드는 생각을 작성해 주세요. 질문에 해당하는 경우, 등장인물의 생각, 감정, 의도에 대해서도 말씀해 주세요.
         
