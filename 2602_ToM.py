@@ -811,7 +811,7 @@ def render_complete_page():
 
     st.title("과제 완료")
 
-    # Google Sheets에 저장 시도
+    # Google Sheets에 저장 (사용자에게 저장 결과 메시지 표시 안 함)
     if check_google_sheets_config():
         with st.spinner("응답을 저장하는 중..."):
             success, message = save_to_google_sheets(
@@ -820,10 +820,8 @@ def render_complete_page():
                 st.session_state.pre_story_responses,
                 timing
             )
-
-        if success:
-            st.success("응답이 성공적으로 저장되었습니다!")
-        else:
+        # 저장 성공/실패 메시지는 표시하지 않음
+        if not success:
             st.error(f"저장 중 오류 발생: {message}")
     else:
         st.warning("Google Sheets가 설정되지 않았습니다. 로컬 테스트 모드입니다.")
@@ -834,16 +832,10 @@ def render_complete_page():
 
     ### 참여해 주셔서 감사합니다!
 
-    과제가 성공적으로 완료되었습니다.
+    퀄트릭스 페이지로 돌아가 설문을 마무리해 주시길 바랍니다.
 
     ---
     """)
-
-    if st.button("새 참가자 시작", type="primary", use_container_width=True):
-        # 세션 상태 초기화
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
 
 def main():
     """메인 함수"""
