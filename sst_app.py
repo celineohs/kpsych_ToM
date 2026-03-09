@@ -832,7 +832,7 @@ def render_complete_page():
 
     ### 참여해 주셔서 감사합니다!
 
-    퀄트릭스 페이지로 돌아가 설문을 마무리해 주시길 바랍니다.
+    퀄트릭스 페이지로 돌아가 설문을 마무리 해주시길 바랍니다. 퀄트릭스 페이지로 돌아가신 직후 등장하는 질문에 대하여, 비밀번호는 지금 읽으신 소설의 이름(어떤 일의 끝)과, 소설 속 여자주인공(마저리)의 이름을 기재해 주시면 됩니다.
 
     ---
     """)
@@ -846,14 +846,48 @@ def main():
         initial_sidebar_state="collapsed"  # 사이드바 기본 닫힘
     )
     
-    # 라이트 모드 강제 설정
+    # 라이트 모드 기본 유지 + 다크 모드에서도 글 읽기 가능하도록 대응
     st.markdown("""
         <style>
+        /* 기본: 라이트 모드 유지 */
         .stApp {
             color-scheme: light;
         }
         [data-testid="stAppViewContainer"] {
             color-scheme: light;
+        }
+        /* 유저가 다크 모드로 바꾼 경우에도 본문·마크다운이 보이도록 */
+        @media (prefers-color-scheme: dark) {
+            .stApp [data-testid="stAppViewContainer"],
+            .stApp .stMarkdown,
+            .stApp .stMarkdown p,
+            .stApp div[data-testid="stMarkdown"] {
+                color: #e4e4e7;
+            }
+            .stApp .stMarkdown strong {
+                color: #f4f4f5;
+            }
+        }
+        [data-theme="dark"] .stMarkdown,
+        [data-theme="dark"] .stMarkdown p,
+        [data-theme="dark"] div[data-testid="stMarkdown"] {
+            color: #e4e4e7;
+        }
+        [data-theme="dark"] .stMarkdown strong {
+            color: #f4f4f5;
+        }
+        /* 스토리/질문 박스 배경이 다크 모드에서도 대비 유지 */
+        @media (prefers-color-scheme: dark) {
+            .stApp div[style*="background-color: #fafafa"],
+            .stApp div[style*="background-color:#fafafa"] {
+                background-color: #27272a !important;
+                color: #e4e4e7 !important;
+            }
+        }
+        [data-theme="dark"] div[style*="background-color: #fafafa"],
+        [data-theme="dark"] div[style*="background-color:#fafafa"] {
+            background-color: #27272a !important;
+            color: #e4e4e7 !important;
         }
         </style>
     """, unsafe_allow_html=True)
