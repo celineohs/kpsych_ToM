@@ -426,7 +426,7 @@ def render_story_page():
     # 소설 본문을 스크롤 가능한 컨테이너에 표시
     st.markdown(
         f"""
-        <div style="
+        <div class="story-body" style="
             background-color: #f9f9f9;
             padding: 30px;
             border-radius: 10px;
@@ -732,7 +732,7 @@ def render_questions_page():
         st.markdown(f"### 📖 {STORY_TITLE}")
         st.markdown(
             f"""
-            <div style="
+            <div class="story-body" style="
                 background-color: #fafafa;
                 padding: 28px 32px;
                 border-radius: 12px;
@@ -876,20 +876,66 @@ def main():
         [data-theme="dark"] .stMarkdown strong {
             color: #f4f4f5;
         }
-        /* 스토리/질문 박스 배경이 다크 모드에서도 대비 유지 */
+        /* 소설 본문 박스(.story-body): 다크 모드에서 배경·글자색 확실히 적용 */
         @media (prefers-color-scheme: dark) {
-            .stApp div[style*="background-color: #fafafa"],
-            .stApp div[style*="background-color:#fafafa"] {
+            .stApp .story-body,
+            .story-body {
                 background-color: #27272a !important;
                 color: #e4e4e7 !important;
+                border-color: #3f3f46 !important;
             }
+            .stApp .story-body br,
+            .story-body br { display: block; }
         }
-        [data-theme="dark"] div[style*="background-color: #fafafa"],
-        [data-theme="dark"] div[style*="background-color:#fafafa"] {
+        [data-theme="dark"] .story-body,
+        .stApp[data-theme="dark"] .story-body {
+            background-color: #27272a !important;
+            color: #e4e4e7 !important;
+            border-color: #3f3f46 !important;
+        }
+        /* Streamlit이 iframe/섹션에 테마 적용하는 경우 */
+        section[data-testid="stSidebar"] + div [data-theme="dark"] .story-body,
+        [data-testid="stAppViewContainer"] [data-theme="dark"] .story-body {
+            background-color: #27272a !important;
+            color: #e4e4e7 !important;
+        }
+        /* html/body 다크일 때(시스템 또는 Streamlit 테마) 소설 본문 항상 보이게 */
+        html[data-theme="dark"] .story-body,
+        [data-theme="dark"] .story-body,
+        .stApp[data-theme="dark"] .story-body,
+        body[data-theme="dark"] .story-body,
+        .dark .story-body,
+        .stApp.dark .story-body,
+        .stApp.dark-mode .story-body {
             background-color: #27272a !important;
             color: #e4e4e7 !important;
         }
         </style>
+        <script>
+        (function() {
+            function applyDarkStory() {
+                var app = document.querySelector('.stApp') || document.body;
+                var bg = window.getComputedStyle(app).backgroundColor;
+                var storyDivs = document.querySelectorAll('.story-body');
+                if (!storyDivs.length) return;
+                var isDark = false;
+                if (bg && (bg.indexOf('14, 14, 14') !== -1 || bg.indexOf('26, 26, 26') !== -1 || bg.indexOf('17, 24, 39') !== -1 || bg.indexOf('rgb(14, 14, 14)') !== -1 || bg.indexOf('rgb(26, 26, 26)') !== -1 || document.documentElement.getAttribute('data-theme') === 'dark')) {
+                    isDark = true;
+                }
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) isDark = true;
+                if (isDark) {
+                    document.querySelector('.stApp') && document.querySelector('.stApp').classList.add('dark-mode');
+                    storyDivs.forEach(function(el) {
+                        el.style.setProperty('background-color', '#27272a', 'important');
+                        el.style.setProperty('color', '#e4e4e7', 'important');
+                    });
+                }
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyDarkStory);
+            else applyDarkStory();
+            setInterval(applyDarkStory, 500);
+        })();
+        </script>
     """, unsafe_allow_html=True)
 
     # 세션 상태 초기화
