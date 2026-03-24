@@ -848,24 +848,16 @@ def main():
         initial_sidebar_state="collapsed"  # 사이드바 기본 닫힘
     )
     
-    # 기본 라이트 모드 + 다크 모드 전환 시 텍스트 흰색 처리
+    # 테마 규칙: 라이트는 전체 검정, 다크는 전체 흰색
     st.markdown("""
         <style>
-        /* 기본 접속 시 라이트 모드 기준 색상 */
-        :root {
-            color-scheme: light;
-        }
+        /* 라이트 모드: 전체 검정 */
         .stApp,
-        .stApp .stMarkdown,
-        .stApp .stMarkdown p,
-        .stApp .stMarkdown li,
-        .stApp div[data-testid="stMarkdown"],
-        .stApp label,
-        .story-body {
-            color: #111827;
+        .stApp * {
+            color: #111111 !important;
         }
 
-        /* 유저가 다크 모드로 전환하면 모든 텍스트를 흰색으로 */
+        /* 다크 모드: 전체 흰색 */
         html[data-theme="dark"] .stApp,
         html[data-theme="dark"] .stApp *,
         [data-theme="dark"] .stApp,
@@ -878,14 +870,12 @@ def main():
         }
         @media (prefers-color-scheme: dark) {
             .stApp,
-            .stApp *,
-            .story-body,
-            .story-body * {
+            .stApp * {
                 color: #ffffff !important;
             }
         }
 
-        /* 입력 컴포넌트는 다크 배경 대비 유지 */
+        /* 다크 모드에서 입력 컴포넌트 배경만 대비 유지 */
         html[data-theme="dark"] .stApp input,
         html[data-theme="dark"] .stApp textarea,
         [data-theme="dark"] .stApp input,
