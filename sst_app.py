@@ -851,13 +851,23 @@ def main():
     # 테마 규칙: 라이트는 전체 검정, 다크는 전체 흰색
     st.markdown("""
         <style>
-        /* 라이트 모드: 전체 검정 */
+        /* 기본값: 전체 검정 */
         .stApp,
         .stApp * {
             color: #111111 !important;
         }
 
-        /* 다크 모드: 전체 흰색 */
+        /* 앱이 라이트 모드일 때: 전체 검정 */
+        html[data-theme="light"] .stApp,
+        html[data-theme="light"] .stApp *,
+        [data-theme="light"] .stApp,
+        [data-theme="light"] .stApp *,
+        .stApp[data-theme="light"],
+        .stApp[data-theme="light"] * {
+            color: #111111 !important;
+        }
+
+        /* 앱이 다크 모드일 때: 전체 흰색 */
         html[data-theme="dark"] .stApp,
         html[data-theme="dark"] .stApp *,
         [data-theme="dark"] .stApp,
@@ -868,6 +878,16 @@ def main():
         .stApp[data-theme="dark"] * {
             color: #ffffff !important;
         }
+
+        /* 시스템이 라이트 모드일 때: 전체 검정 */
+        @media (prefers-color-scheme: light) {
+            .stApp,
+            .stApp * {
+                color: #111111 !important;
+            }
+        }
+
+        /* 시스템이 다크 모드일 때: 전체 흰색 */
         @media (prefers-color-scheme: dark) {
             .stApp,
             .stApp * {
