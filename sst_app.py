@@ -879,18 +879,18 @@ def main():
             color: #ffffff !important;
         }
 
-        /* 시스템이 라이트 모드일 때: 전체 검정 */
+        /* 시스템 모드는 앱 테마가 명시되지 않은 경우에만 적용 */
         @media (prefers-color-scheme: light) {
-            .stApp,
-            .stApp * {
+            html:not([data-theme]) .stApp,
+            html:not([data-theme]) .stApp * {
                 color: #111111 !important;
             }
         }
 
-        /* 시스템이 다크 모드일 때: 전체 흰색 */
+        /* 시스템 다크 모드도 앱 테마가 명시되지 않은 경우에만 적용 */
         @media (prefers-color-scheme: dark) {
-            .stApp,
-            .stApp * {
+            html:not([data-theme]) .stApp,
+            html:not([data-theme]) .stApp * {
                 color: #ffffff !important;
             }
         }
@@ -916,7 +916,7 @@ def main():
             border-color: #3f3f46 !important;
         }
         @media (prefers-color-scheme: dark) {
-            .story-body {
+            html:not([data-theme]) .story-body {
                 background-color: #27272a !important;
                 border-color: #3f3f46 !important;
             }
