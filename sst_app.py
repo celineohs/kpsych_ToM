@@ -870,9 +870,19 @@ def main():
         html[data-theme="dark"] .stApp *,
         [data-theme="dark"] .stApp,
         [data-theme="dark"] .stApp *,
+        .dark .stApp,
+        .dark .stApp *,
         .stApp[data-theme="dark"],
         .stApp[data-theme="dark"] * {
             color: #ffffff !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            .stApp,
+            .stApp *,
+            .story-body,
+            .story-body * {
+                color: #ffffff !important;
+            }
         }
 
         /* 입력 컴포넌트는 다크 배경 대비 유지 */
@@ -890,9 +900,16 @@ def main():
         }
         html[data-theme="dark"] .story-body,
         [data-theme="dark"] .story-body,
+        .dark .story-body,
         .stApp[data-theme="dark"] .story-body {
             background-color: #27272a !important;
             border-color: #3f3f46 !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            .story-body {
+                background-color: #27272a !important;
+                border-color: #3f3f46 !important;
+            }
         }
         </style>
     """, unsafe_allow_html=True)
