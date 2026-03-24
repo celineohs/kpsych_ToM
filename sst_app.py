@@ -848,96 +848,37 @@ def main():
         initial_sidebar_state="collapsed"  # 사이드바 기본 닫힘
     )
     
-    # 라이트 모드 기본 유지 + 다크 모드에서도 글 읽기 가능하도록 대응
+    # 기본 라이트 모드 유지 + 다크 모드일 때만 가독성 보정
     st.markdown("""
         <style>
-        /* 기본: 라이트 모드 유지 */
-        .stApp {
-            color-scheme: light;
+        /* 라이트 모드: 검은 텍스트를 명시해 흐려지지 않게 고정 */
+        .stApp,
+        .stApp .stMarkdown,
+        .stApp .stMarkdown p,
+        .stApp div[data-testid="stMarkdown"] {
+            color: #111827;
         }
-        [data-testid="stAppViewContainer"] {
-            color-scheme: light;
+        .story-body {
+            color: #111827 !important;
         }
-        /* 유저가 다크 모드로 바꾼 경우에도 본문·마크다운이 보이도록 */
-        @media (prefers-color-scheme: dark) {
-            .stApp [data-testid="stAppViewContainer"],
-            .stApp .stMarkdown,
-            .stApp .stMarkdown p,
-            .stApp div[data-testid="stMarkdown"] {
-                color: #e4e4e7;
-            }
-            .stApp .stMarkdown strong {
-                color: #f4f4f5;
-            }
-        }
-        [data-theme="dark"] .stMarkdown,
-        [data-theme="dark"] .stMarkdown p,
-        [data-theme="dark"] div[data-testid="stMarkdown"] {
+
+        /* 사용자가 다크 모드로 바꾼 경우에만 색상 전환 */
+        html[data-theme="dark"] .stApp .stMarkdown,
+        html[data-theme="dark"] .stApp .stMarkdown p,
+        html[data-theme="dark"] .stApp div[data-testid="stMarkdown"],
+        [data-theme="dark"] .stApp .stMarkdown,
+        [data-theme="dark"] .stApp .stMarkdown p,
+        [data-theme="dark"] .stApp div[data-testid="stMarkdown"] {
             color: #e4e4e7;
         }
-        [data-theme="dark"] .stMarkdown strong {
-            color: #f4f4f5;
-        }
-        /* 소설 본문 박스(.story-body): 다크 모드에서 배경·글자색 확실히 적용 */
-        @media (prefers-color-scheme: dark) {
-            .stApp .story-body,
-            .story-body {
-                background-color: #27272a !important;
-                color: #e4e4e7 !important;
-                border-color: #3f3f46 !important;
-            }
-            .stApp .story-body br,
-            .story-body br { display: block; }
-        }
+        html[data-theme="dark"] .story-body,
         [data-theme="dark"] .story-body,
         .stApp[data-theme="dark"] .story-body {
             background-color: #27272a !important;
             color: #e4e4e7 !important;
             border-color: #3f3f46 !important;
         }
-        /* Streamlit이 iframe/섹션에 테마 적용하는 경우 */
-        section[data-testid="stSidebar"] + div [data-theme="dark"] .story-body,
-        [data-testid="stAppViewContainer"] [data-theme="dark"] .story-body {
-            background-color: #27272a !important;
-            color: #e4e4e7 !important;
-        }
-        /* html/body 다크일 때(시스템 또는 Streamlit 테마) 소설 본문 항상 보이게 */
-        html[data-theme="dark"] .story-body,
-        [data-theme="dark"] .story-body,
-        .stApp[data-theme="dark"] .story-body,
-        body[data-theme="dark"] .story-body,
-        .dark .story-body,
-        .stApp.dark .story-body,
-        .stApp.dark-mode .story-body {
-            background-color: #27272a !important;
-            color: #e4e4e7 !important;
-        }
         </style>
-        <script>
-        (function() {
-            function applyDarkStory() {
-                var app = document.querySelector('.stApp') || document.body;
-                var bg = window.getComputedStyle(app).backgroundColor;
-                var storyDivs = document.querySelectorAll('.story-body');
-                if (!storyDivs.length) return;
-                var isDark = false;
-                if (bg && (bg.indexOf('14, 14, 14') !== -1 || bg.indexOf('26, 26, 26') !== -1 || bg.indexOf('17, 24, 39') !== -1 || bg.indexOf('rgb(14, 14, 14)') !== -1 || bg.indexOf('rgb(26, 26, 26)') !== -1 || document.documentElement.getAttribute('data-theme') === 'dark')) {
-                    isDark = true;
-                }
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) isDark = true;
-                if (isDark) {
-                    document.querySelector('.stApp') && document.querySelector('.stApp').classList.add('dark-mode');
-                    storyDivs.forEach(function(el) {
-                        el.style.setProperty('background-color', '#27272a', 'important');
-                        el.style.setProperty('color', '#e4e4e7', 'important');
-                    });
-                }
-            }
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyDarkStory);
-            else applyDarkStory();
-            setInterval(applyDarkStory, 500);
-        })();
-        </script>
     """, unsafe_allow_html=True)
 
     # 세션 상태 초기화
