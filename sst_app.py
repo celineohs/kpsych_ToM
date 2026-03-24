@@ -878,6 +878,28 @@ def main():
             color: #e4e4e7 !important;
             border-color: #3f3f46 !important;
         }
+        /* 다크 모드에서 질문 영역/입력창 가독성 보정 */
+        html[data-theme="dark"] .stApp .stTextArea textarea,
+        [data-theme="dark"] .stApp .stTextArea textarea,
+        .stApp[data-theme="dark"] .stTextArea textarea {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border-color: #3f3f46 !important;
+        }
+        html[data-theme="dark"] .stApp .stTextArea textarea::placeholder,
+        [data-theme="dark"] .stApp .stTextArea textarea::placeholder,
+        .stApp[data-theme="dark"] .stTextArea textarea::placeholder {
+            color: #a1a1aa !important;
+            opacity: 1 !important;
+        }
+        html[data-theme="dark"] .stApp label,
+        html[data-theme="dark"] .stApp .stMarkdown strong,
+        [data-theme="dark"] .stApp label,
+        [data-theme="dark"] .stApp .stMarkdown strong,
+        .stApp[data-theme="dark"] label,
+        .stApp[data-theme="dark"] .stMarkdown strong {
+            color: #f4f4f5 !important;
+        }
         </style>
     """, unsafe_allow_html=True)
 
