@@ -848,97 +848,50 @@ def main():
         initial_sidebar_state="collapsed"  # 사이드바 기본 닫힘
     )
     
-    # 기본 라이트 모드 유지 + 다크 모드일 때만 가독성 보정
+    # 기본 라이트 모드 + 다크 모드 전환 시 텍스트 흰색 처리
     st.markdown("""
         <style>
-        /* 라이트 모드: 검은 텍스트를 명시해 흐려지지 않게 고정 */
+        /* 기본 접속 시 라이트 모드 기준 색상 */
+        :root {
+            color-scheme: light;
+        }
         .stApp,
         .stApp .stMarkdown,
         .stApp .stMarkdown p,
-        .stApp div[data-testid="stMarkdown"] {
+        .stApp .stMarkdown li,
+        .stApp div[data-testid="stMarkdown"],
+        .stApp label,
+        .story-body {
             color: #111827;
         }
-        .story-body {
-            color: #111827 !important;
+
+        /* 유저가 다크 모드로 전환하면 모든 텍스트를 흰색으로 */
+        html[data-theme="dark"] .stApp,
+        html[data-theme="dark"] .stApp *,
+        [data-theme="dark"] .stApp,
+        [data-theme="dark"] .stApp *,
+        .stApp[data-theme="dark"],
+        .stApp[data-theme="dark"] * {
+            color: #ffffff !important;
         }
 
-        /* 사용자가 다크 모드로 바꾼 경우에만 색상 전환 */
-        html[data-theme="dark"] .stApp .stMarkdown,
-        html[data-theme="dark"] .stApp .stMarkdown p,
-        html[data-theme="dark"] .stApp div[data-testid="stMarkdown"],
-        [data-theme="dark"] .stApp .stMarkdown,
-        [data-theme="dark"] .stApp .stMarkdown p,
-        [data-theme="dark"] .stApp div[data-testid="stMarkdown"] {
-            color: #e4e4e7;
-        }
-        html[data-theme="dark"] .story-body,
-        [data-theme="dark"] .story-body,
-        .stApp[data-theme="dark"] .story-body {
-            background-color: #27272a !important;
-            color: #e4e4e7 !important;
-            border-color: #3f3f46 !important;
-        }
-        /* 다크 모드에서 질문 영역/입력창 가독성 보정 */
-        html[data-theme="dark"] .stApp .stTextArea textarea,
-        [data-theme="dark"] .stApp .stTextArea textarea,
-        .stApp[data-theme="dark"] .stTextArea textarea {
-            background-color: #18181b !important;
-            color: #f4f4f5 !important;
-            border-color: #3f3f46 !important;
-        }
-        html[data-theme="dark"] .stApp .stTextArea textarea::placeholder,
-        [data-theme="dark"] .stApp .stTextArea textarea::placeholder,
-        .stApp[data-theme="dark"] .stTextArea textarea::placeholder {
-            color: #a1a1aa !important;
-            opacity: 1 !important;
-        }
-        html[data-theme="dark"] .stApp label,
-        html[data-theme="dark"] .stApp .stMarkdown strong,
-        [data-theme="dark"] .stApp label,
-        [data-theme="dark"] .stApp .stMarkdown strong,
-        .stApp[data-theme="dark"] label,
-        .stApp[data-theme="dark"] .stMarkdown strong {
-            color: #f4f4f5 !important;
-        }
-        /* 다크 모드에서 참가자 정보/사전질문 폼 전반 가독성 */
-        html[data-theme="dark"] .stApp h1,
-        html[data-theme="dark"] .stApp h2,
-        html[data-theme="dark"] .stApp h3,
-        html[data-theme="dark"] .stApp p,
-        [data-theme="dark"] .stApp h1,
-        [data-theme="dark"] .stApp h2,
-        [data-theme="dark"] .stApp h3,
-        [data-theme="dark"] .stApp p,
-        .stApp[data-theme="dark"] h1,
-        .stApp[data-theme="dark"] h2,
-        .stApp[data-theme="dark"] h3,
-        .stApp[data-theme="dark"] p {
-            color: #f4f4f5 !important;
-        }
+        /* 입력 컴포넌트는 다크 배경 대비 유지 */
         html[data-theme="dark"] .stApp input,
         html[data-theme="dark"] .stApp textarea,
         [data-theme="dark"] .stApp input,
         [data-theme="dark"] .stApp textarea,
         .stApp[data-theme="dark"] input,
-        .stApp[data-theme="dark"] textarea {
-            background-color: #18181b !important;
-            color: #f4f4f5 !important;
-            border-color: #3f3f46 !important;
-        }
-        html[data-theme="dark"] .stApp input::placeholder,
-        html[data-theme="dark"] .stApp textarea::placeholder,
-        [data-theme="dark"] .stApp input::placeholder,
-        [data-theme="dark"] .stApp textarea::placeholder,
-        .stApp[data-theme="dark"] input::placeholder,
-        .stApp[data-theme="dark"] textarea::placeholder {
-            color: #a1a1aa !important;
-            opacity: 1 !important;
-        }
+        .stApp[data-theme="dark"] textarea,
         html[data-theme="dark"] .stApp [data-baseweb="select"] > div,
         [data-theme="dark"] .stApp [data-baseweb="select"] > div,
         .stApp[data-theme="dark"] [data-baseweb="select"] > div {
             background-color: #18181b !important;
-            color: #f4f4f5 !important;
+            border-color: #3f3f46 !important;
+        }
+        html[data-theme="dark"] .story-body,
+        [data-theme="dark"] .story-body,
+        .stApp[data-theme="dark"] .story-body {
+            background-color: #27272a !important;
             border-color: #3f3f46 !important;
         }
         </style>
