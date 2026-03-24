@@ -900,6 +900,47 @@ def main():
         .stApp[data-theme="dark"] .stMarkdown strong {
             color: #f4f4f5 !important;
         }
+        /* 다크 모드에서 참가자 정보/사전질문 폼 전반 가독성 */
+        html[data-theme="dark"] .stApp h1,
+        html[data-theme="dark"] .stApp h2,
+        html[data-theme="dark"] .stApp h3,
+        html[data-theme="dark"] .stApp p,
+        [data-theme="dark"] .stApp h1,
+        [data-theme="dark"] .stApp h2,
+        [data-theme="dark"] .stApp h3,
+        [data-theme="dark"] .stApp p,
+        .stApp[data-theme="dark"] h1,
+        .stApp[data-theme="dark"] h2,
+        .stApp[data-theme="dark"] h3,
+        .stApp[data-theme="dark"] p {
+            color: #f4f4f5 !important;
+        }
+        html[data-theme="dark"] .stApp input,
+        html[data-theme="dark"] .stApp textarea,
+        [data-theme="dark"] .stApp input,
+        [data-theme="dark"] .stApp textarea,
+        .stApp[data-theme="dark"] input,
+        .stApp[data-theme="dark"] textarea {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border-color: #3f3f46 !important;
+        }
+        html[data-theme="dark"] .stApp input::placeholder,
+        html[data-theme="dark"] .stApp textarea::placeholder,
+        [data-theme="dark"] .stApp input::placeholder,
+        [data-theme="dark"] .stApp textarea::placeholder,
+        .stApp[data-theme="dark"] input::placeholder,
+        .stApp[data-theme="dark"] textarea::placeholder {
+            color: #a1a1aa !important;
+            opacity: 1 !important;
+        }
+        html[data-theme="dark"] .stApp [data-baseweb="select"] > div,
+        [data-theme="dark"] .stApp [data-baseweb="select"] > div,
+        .stApp[data-theme="dark"] [data-baseweb="select"] > div {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border-color: #3f3f46 !important;
+        }
         </style>
     """, unsafe_allow_html=True)
 
