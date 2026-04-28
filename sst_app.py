@@ -301,7 +301,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
             headers = [
                 'timestamp', 'participant_name',
                 'story_read_time_sec', 'questions_time_sec', 'total_time_sec',
-                'read_before', 'read_when', 'read_memory', 'read_context',
+                'read_before', 'read_when', 'read_memory', 'read_context', 'read_context_other',
                 'read_grade', 'read_class', 'familiar', 'familiar_knowledge',
                 'familiar_discussion'
             ]
@@ -321,6 +321,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
             pre_story_responses.get('read_when', ''),
             pre_story_responses.get('read_memory', ''),
             pre_story_responses.get('read_context', ''),
+            pre_story_responses.get('read_context_other', ''),
             pre_story_responses.get('read_grade', ''),
             pre_story_responses.get('read_class', ''),
             pre_story_responses.get('familiar', ''),
@@ -472,6 +473,7 @@ def render_pre_questions_page():
             'read_when': '',
             'read_memory': '',
             'read_context': '선택하세요',
+            'read_context_other': '',
             'read_grade': '',
             'read_class': '',
             'familiar': '선택하세요',
@@ -493,6 +495,7 @@ def render_pre_questions_page():
     read_when = ""
     read_memory = ""
     read_context = ""
+    read_context_other = ""
     read_grade = ""
     read_class = ""
 
@@ -521,6 +524,15 @@ def render_pre_questions_page():
             index=["선택하세요", "취미", "학교", "기타"].index(st.session_state.temp_pre_responses.get('read_context', '선택하세요'))
         )
         st.session_state.temp_pre_responses['read_context'] = read_context
+
+        if read_context == "기타":
+            read_context_other = st.text_input(
+                "기타를 선택하셨습니다. 어떤 경로로 읽으셨는지 입력해주세요.",
+                placeholder="예: 독서모임, 온라인 추천, 지인 권유 등",
+                value=st.session_state.temp_pre_responses.get('read_context_other', ''),
+                key="read_context_other_input"
+            )
+            st.session_state.temp_pre_responses['read_context_other'] = read_context_other
 
         if read_context == "학교":
             read_grade = st.text_input(
@@ -596,6 +608,8 @@ def render_pre_questions_page():
                 errors.append("소설을 얼마나 잘 기억하시는지 입력해주세요.")
             if read_context == "선택하세요":
                 errors.append("학교에서 읽으셨는지, 취미로 읽으셨는지 선택해주세요.")
+            if read_context == "기타" and not read_context_other.strip():
+                errors.append("'기타' 경로를 구체적으로 입력해주세요.")
             if read_context == "학교":
                 if not read_grade.strip():
                     errors.append("몇 학년 때 읽으셨는지 입력해주세요.")
@@ -619,6 +633,7 @@ def render_pre_questions_page():
                 'read_when': read_when if read_before == "예" else "",
                 'read_memory': read_memory if read_before == "예" else "",
                 'read_context': read_context if read_before == "예" else "",
+                'read_context_other': read_context_other if read_before == "예" and read_context == "기타" else "",
                 'read_grade': read_grade if read_before == "예" and read_context == "학교" else "",
                 'read_class': read_class if read_before == "예" and read_context == "학교" else "",
                 'familiar': familiar,
@@ -834,7 +849,9 @@ def render_complete_page():
 
     ### 참여해 주셔서 감사합니다!
 
-    퀄트릭스 페이지로 돌아가 설문을 마무리 해주시길 바랍니다. 퀄트릭스 페이지로 돌아가신 직후 등장하는 질문에 대하여, 비밀번호는 지금 읽으신 소설의 이름(어떤 일의 끝)과, 소설 속 여자주인공(마저리)의 이름을 기재해 주시면 됩니다.
+    퀄트릭스 페이지로 돌아가 설문을 마무리 해주시길 바랍니다.
+
+    **퀄트릭스 페이지로 돌아가신 직후 등장하는 질문에 대하여, 비밀번호는 지금 읽으신 소설의 이름(어떤 일의 끝)과, 소설 속 여자주인공(마저리)의 이름을 기재해 주시면 됩니다.**
 
     ---
     """)
