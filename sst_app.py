@@ -11,6 +11,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import json
+from pathlib import Path
 
 # Google Sheets 연동을 위한 import
 try:
@@ -95,6 +96,13 @@ STORY_TEXT = """
 "제발 좀 가줘, 빌! 잠깐만 자리 비워줘."
 빌은 도시락 바구니에서 샌드위치를 하나 골라 들고 낚싯대를 보러 걸어갔다.
 """
+
+# 소설 본문: 원문의 한 번 줄바꿈(문단 구분)을 화면에서 빈 줄 한 줄로 표시
+def story_text_to_html(story: str) -> str:
+    return story.strip().replace("\n", "<br><br>")
+
+# 퀄트릭스 입력 안내 스크린샷 (저장소 루트의 `image (1).png`)
+QUALTRICS_GUIDE_IMAGE = Path(__file__).resolve().parent / "image (1).png"
 
 # 질문 목록 설정
 # 각 질문은 딕셔너리 형태: {"id": 고유ID, "type": 질문유형, "text": 질문내용}
@@ -375,7 +383,7 @@ def render_story_page():
             overflow-y: auto;
             border: 1px solid #ddd;
         ">
-        {STORY_TEXT.replace(chr(10), '<br>')}
+        {story_text_to_html(STORY_TEXT)}
         </div>
         """,
         unsafe_allow_html=True
@@ -698,7 +706,7 @@ def render_questions_page():
                 border: 1px solid #e0e0e0;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             ">
-            {STORY_TEXT.replace(chr(10), '<br>')}
+            {story_text_to_html(STORY_TEXT)}
             </div>
             """,
             unsafe_allow_html=True
@@ -783,14 +791,17 @@ def render_complete_page():
     st.markdown("""
     ---
 
-    ### 참여해 주셔서 감사합니다!
+    참여해주셔서 감사합니다.
 
-    퀄트릭스 페이지로 돌아가 설문을 마무리 해주시길 바랍니다.
-
-    ### **퀄트릭스 페이지로 돌아가신 직후 등장하는 질문에 대하여, 비밀번호는 지금 읽으신 소설의 이름(어떤 일의 끝)과, 소설 속 여자주인공(마저리)의 이름을 기재해 주시면 됩니다.**
+    퀄트릭스로 돌아가 다음과 같이 답변을 입력해주시기 바랍니다. (답: 어떤 일의 끝, 마저리)
 
     ---
     """)
+
+    if QUALTRICS_GUIDE_IMAGE.is_file():
+        st.image(str(QUALTRICS_GUIDE_IMAGE))
+    else:
+        st.caption(f"안내 이미지를 찾을 수 없습니다: {QUALTRICS_GUIDE_IMAGE.name}")
 
 def main():
     """메인 함수"""
