@@ -243,7 +243,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
         if len(existing_data) == 0:
             # 헤더 생성
             headers = [
-                'timestamp', 'participant_name',
+                'timestamp', 'participant_id',
                 'story_read_time_sec', 'questions_time_sec', 'total_time_sec',
                 'read_before', 'read_when', 'read_memory', 'read_context', 'read_context_other',
                 'read_grade', 'read_class', 'familiar', 'familiar_knowledge',
@@ -257,7 +257,7 @@ def save_to_google_sheets(participant_info: dict, responses: dict, pre_story_res
         # 데이터 행 구성
         row = [
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            participant_info.get('name', ''),
+            participant_info.get('id', ''),
             str(round(timing.get('story_read_time', 0), 1)),
             str(round(timing.get('questions_time', 0), 1)),
             str(round(timing.get('total_time', 0), 1)),
@@ -323,16 +323,17 @@ def render_participant_info_page():
     st.title("참가자 정보")
 
     with st.form("participant_form"):
-        participant_name = st.text_input("참가자 이름", placeholder="예: 홍길동")
+        participant_id = st.text_input("참가자 ID", placeholder="예: P001")
 
         submitted = st.form_submit_button("다음", type="primary", use_container_width=True)
 
         if submitted:
-            if not participant_name:
-                st.error("참가자 이름을 입력해주세요.")
+            pid = participant_id.strip()
+            if not pid:
+                st.error("참가자 ID를 입력해주세요.")
             else:
                 st.session_state.participant_info = {
-                    'name': participant_name
+                    'id': pid
                 }
                 st.session_state.page = 'instruction'
                 st.rerun()
